@@ -203,6 +203,9 @@ img{max-width:100%;-webkit-user-drag:none;pointer-events:none}
 .sheet .lab{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);font-weight:900;margin-top:4px}
 .sheet .tnum{font-variant-numeric:tabular-nums}
 
+.install{--c:#fff;--d:#C9D7EE;display:flex;align-items:center;gap:8px;padding:12px 20px;border-radius:18px;font-family:var(--f-display);font-weight:600;font-size:19px}
+.install svg{width:22px;height:22px}
+.ios-tip{margin:0;max-width:300px;background:#fff;border-radius:16px;padding:10px 14px;font-weight:800;font-size:15px;line-height:1.35;color:var(--ink-soft)}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
 
@@ -213,6 +216,8 @@ img{max-width:100%;-webkit-user-drag:none;pointer-events:none}
     <h1>Los juegos <span>de Gio</span></h1>
     <div class="parade" id="parade"></div>
     <button class="toy big-btn" id="go">¡Jugar!</button>
+    <button class="toy install" id="install" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7 10l5 5 5-5"/><path d="M5 20h14"/></svg>Instalar en el celu</button>
+    <p class="ios-tip" id="iosTip" hidden>En el iPhone: tocá el botón <b>Compartir</b> (el cuadrado con la flecha) y después <b>Agregar a inicio</b>.</p>
   </section>
 
   <!-- MENÚ -->
@@ -774,5 +779,18 @@ $('#pReset').onclick=()=>{S.used=0; S.extra=0; S.warned=false; save(); openParen
 $('#pVoice').onclick=()=>{S.voice=!S.voice; if(!S.voice&&'speechSynthesis' in window) speechSynthesis.cancel(); save(); openParent();};
 $('#pClose').onclick=()=>{$('#parent').hidden=true; if(S.used<limitSec()){ timeUp=false; if(!$('#lock').hidden) goMenu(false); else drawSuns(); }};
 window.addEventListener('pagehide',save);
+
+/* ---------- instalar en el celu ---------- */
+let installEv=null;
+const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const canInstall=!!document.querySelector('link[rel="manifest"]')&&!standalone;
+if(canInstall&&isIOS) $('#install').hidden=false;
+addEventListener('beforeinstallprompt',e=>{e.preventDefault(); installEv=e; if(canInstall) $('#install').hidden=false;});
+addEventListener('appinstalled',()=>{installEv=null; $('#install').hidden=true; $('#iosTip').hidden=true;});
+$('#install').onclick=async()=>{
+  if(installEv){ installEv.prompt(); try{const r=await installEv.userChoice; if(r.outcome==='accepted') $('#install').hidden=true;}catch(e){} installEv=null; }
+  else if(isIOS) $('#iosTip').hidden=!$('#iosTip').hidden;
+};
 </script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}</script>
