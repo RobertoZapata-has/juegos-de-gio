@@ -299,6 +299,8 @@ img{max-width:100%;-webkit-user-drag:none;pointer-events:none}
       <div class="prow" id="pLimits"></div>
       <div class="lab">Voz</div>
       <div class="prow"><button class="toy chip" id="pVoice"></button></div>
+      <div class="lab">Rompecabezas</div>
+      <div class="prow"><button class="toy chip" id="pHint"></button></div>
       <button class="toy big-btn" id="pClose" style="font-size:24px;padding:12px 34px">Listo</button>
     </div>
   </div>
@@ -340,7 +342,7 @@ document.querySelectorAll('img[data-c]').forEach(i=>i.src=IMG[i.dataset.c]);
 
 /* ---------- guardado ---------- */
 const KEY='juegosDeGio.v1';
-let S = {date:today(),used:0,limit:60,extra:0,stars:0,lvl:{},seen:{},voice:true,warned:false};
+let S = {date:today(),used:0,limit:60,extra:0,stars:0,lvl:{},seen:{},voice:true,warned:false,hint:false};
 try{const raw=localStorage.getItem(KEY); if(raw) S=Object.assign(S,JSON.parse(raw));}catch(e){}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}};
 function rollDay(){ if(S.date!==today()){S.date=today();S.used=0;S.extra=0;S.warned=false;save();} }
@@ -601,7 +603,7 @@ GAMES.rompe={id:'rompe',title:'Rompecabezas',face:['vineria'],
         let sx,sy,moved=false,id=null;
         p.onpointerdown=e=>{ if(p._placed) return; id=e.pointerId; p.setPointerCapture(id); sx=e.clientX; sy=e.clientY; moved=false; };
         p.onpointermove=e=>{ if(e.pointerId!==id) return; const dx=e.clientX-sx,dy=e.clientY-sy;
-          if(!moved && Math.hypot(dx,dy)>8){moved=true; p.classList.add('drag'); if(sel){sel.classList.remove('sel');sel=null;} sfx.tap(); slots[p._i].classList.add('hint');}
+          if(!moved && Math.hypot(dx,dy)>8){moved=true; p.classList.add('drag'); if(sel){sel.classList.remove('sel');sel=null;} sfx.tap(); if(S.hint) slots[p._i].classList.add('hint');}
           if(moved) p.style.transform=`translate(${dx}px,${dy}px) scale(${1/ts})`; };
         p.onpointerup=p.onpointercancel=e=>{ if(e.pointerId!==id) return; id=null;
           if(!moved){ if(sel===p){p.classList.remove('sel');sel=null;} else { if(sel) sel.classList.remove('sel'); sel=p; p.classList.add('sel'); sfx.tap(); } return; }
@@ -772,8 +774,10 @@ function openParent(){
   const pl=$('#pLimits'); pl.innerHTML='';
   [30,45,60,90].forEach(v=>{const b=el('button','toy chip'+(S.limit===v?' on':''),v+' min'); b.onclick=()=>{S.limit=v;save();openParent();}; pl.appendChild(b);});
   $('#pVoice').textContent=S.voice?'Voz activada':'Voz apagada'; $('#pVoice').classList.toggle('on',S.voice);
+  $('#pHint').textContent=S.hint?'Marcar dónde va: sí':'Marcar dónde va: no'; $('#pHint').classList.toggle('on',S.hint);
   $('#parent').hidden=false;
 }
+$('#pHint').onclick=()=>{S.hint=!S.hint; save(); openParent();};
 $('#pPlus').onclick=()=>{S.extra+=15; S.warned=false; save(); openParent();};
 $('#pReset').onclick=()=>{S.used=0; S.extra=0; S.warned=false; save(); openParent();};
 $('#pVoice').onclick=()=>{S.voice=!S.voice; if(!S.voice&&'speechSynthesis' in window) speechSynthesis.cancel(); save(); openParent();};

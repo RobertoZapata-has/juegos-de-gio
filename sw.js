@@ -1,5 +1,5 @@
 // Funciona sin internet una vez abierto. Para publicar cambios, subí el número de versión.
-const V='juegos-gio-v2';
+const V='juegos-gio-v3';
 const FILES=['./','index.html','manifest.json','icon-192.png','icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(FILES)));self.skipWaiting();});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(n=>n!==V).map(n=>caches.delete(n)))));self.clients.claim();});
